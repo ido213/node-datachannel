@@ -5,14 +5,14 @@ ARG node_version=18
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install basic build tools and dependencies
-RUN apt-get update &&
-    apt-get install -y build-essential cmake ninja-build git curl pkg-config wget unzip python3 clang llvm lld file &&
-    apt-get clean &&
+RUN apt-get update && \
+    apt-get install -y build-essential cmake ninja-build git curl pkg-config wget unzip python3 clang llvm lld file && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_${node_version}.x | bash - &&
-    apt-get install -y nodejs &&
+RUN curl -fsSL https://deb.nodesource.com/setup_${node_version}.x | bash - && \
+    apt-get install -y nodejs && \
     npm install -g npm@latest
 
 # Set up directories
@@ -22,10 +22,10 @@ WORKDIR /opt/android-ndk
 
 # Install Android NDK - Use the standard Linux host package
 # The NDK itself contains tools for all target architectures
-RUN wget -q https://dl.google.com/android/repository/android-ndk-r23b-linux-x86_64.zip &&
-    unzip -q android-ndk-r23b-linux-x86_64.zip &&
-    rm android-ndk-r23b-linux-x86_64.zip &&
-    mv android-ndk-r23b/* . &&
+RUN wget -q https://dl.google.com/android/repository/android-ndk-r23b-linux-x86_64.zip && \
+    unzip -q android-ndk-r23b-linux-x86_64.zip && \
+    rm android-ndk-r23b-linux-x86_64.zip && \
+    mv android-ndk-r23b/* . && \
     rmdir android-ndk-r23b
 
 # Set up Termux-compatible environment variables
