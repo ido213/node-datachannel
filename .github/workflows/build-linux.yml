@@ -16,7 +16,7 @@ jobs:
       matrix:
         node-version: [18]
         arch: [amd64, arm64, arm]
-        platform: [debian, alpine]
+        platform: [debian, alpine, android]
         include:
           # Set baselines per platform
           - triple: "alpine-linux-musl"
@@ -30,6 +30,11 @@ jobs:
           - triple: "linux-gnu"
             platform: debian
             version: bullseye
+          # Android/Termux configuration
+          - triple: "linux-android"
+            platform: android
+            version: latest
+            libc: bionic
           # Set baselines per architecture
           - triple_arch: x86_64
             node_arch: x64
@@ -63,6 +68,21 @@ jobs:
             gcc_install: gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
             gcc: arm-linux-gnueabihf-gcc
             gxx: arm-linux-gnueabihf-g++
+          # Android Termux configuration for Octa-core Cortex-A78/A55
+          - arch: arm64
+            platform: android
+            triple_arch: aarch64
+            node_arch: arm64
+            gcc_install: gcc g++
+            gcc: gcc
+            gxx: g++
+            flags: -march=armv8.2-a -mcpu=cortex-a78 -mtune=cortex-a78 -fPIC
+        exclude:
+          # Exclude default android combinations except arm64
+          - arch: amd64
+            platform: android
+          - arch: arm
+            platform: android
 
     steps:
       - uses: actions/checkout@v4
