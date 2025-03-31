@@ -5,14 +5,14 @@ ARG node_version=18
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install basic build tools and dependencies
-RUN apt-get update && \
-    apt-get install -y build-essential cmake ninja-build git curl pkg-config wget unzip python3 clang llvm lld file && \
-    apt-get clean && \
+RUN apt-get update &&
+    apt-get install -y build-essential cmake ninja-build git curl pkg-config wget unzip python3 clang llvm lld file &&
+    apt-get clean &&
     rm -rf /var/lib/apt/lists/*
 
 # Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_${node_version}.x | bash - && \
-    apt-get install -y nodejs && \
+RUN curl -fsSL https://deb.nodesource.com/setup_${node_version}.x | bash - &&
+    apt-get install -y nodejs &&
     npm --version
 
 # Set up directories
@@ -20,29 +20,20 @@ WORKDIR /tmp
 RUN mkdir -p /opt/android-ndk
 WORKDIR /opt/android-ndk
 
-# Detect architecture and download appropriate NDK
-RUN arch=$(dpkg --print-architecture) && \
-    echo "Detected architecture: $arch" && \
-    if [ "$arch" = "arm64" ]; then \
-        NDK_ARCH="aarch64"; \
-    else \
-        NDK_ARCH="x86_64"; \
-    fi && \
-    echo "Using NDK for architecture: $NDK_ARCH" && \
-    NDK_URL="https://dl.google.com/android/repository/android-ndk-r23b-linux-${NDK_ARCH}.zip" && \
-    echo "Downloading from: $NDK_URL" && \
-    wget -q "$NDK_URL" && \
-    unzip -q "android-ndk-r23b-linux-${NDK_ARCH}.zip" && \
-    rm "android-ndk-r23b-linux-${NDK_ARCH}.zip" && \
-    mv android-ndk-r23b/* . && \
+# Install Android NDK - Always use x86_64 version (no arm64 version is officially available)
+RUN echo "Downloading NDK..." &&
+    wget -q "https://dl.google.com/android/repository/android-ndk-r23b-linux-x86_64.zip" &&
+    unzip -q "android-ndk-r23b-linux-x86_64.zip" &&
+    rm "android-ndk-r23b-linux-x86_64.zip" &&
+    mv android-ndk-r23b/* . &&
     rmdir android-ndk-r23b
 
 # Set up Termux-compatible environment variables with architecture awareness
-RUN arch=$(dpkg --print-architecture) && \
-    if [ "$arch" = "arm64" ]; then \
-        echo "export TOOLCHAIN_ARCH=linux-aarch64" >/etc/profile.d/ndk-env.sh; \
-    else \
-        echo "export TOOLCHAIN_ARCH=linux-x86_64" >/etc/profile.d/ndk-env.sh; \
+RUN arch=$(dpkg --print-architecture) &&
+    if [ "$arch" = "arm64" ]; then
+        echo "ARM64 host detected, still using x86_64 NDK (only available version)"
+    else
+        echo "x86_64 host detected"
     fi
 
 ENV ANDROID_NDK_HOME=/opt/android-ndk
