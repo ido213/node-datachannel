@@ -15,59 +15,61 @@ jobs:
     strategy:
       matrix:
         node-version: [18]
-        arch: [amd64, arm64, arm]
-        platform: [debian, alpine, android]
+        # arch: [amd64, arm64, arm]
+        arch: [arm64]
+        # platform: [debian, alpine, android]
+        platform: [android]
         include:
           # Set baselines per platform
-          - triple: "alpine-linux-musl"
-            platform: alpine
-            version: 3.16
-            libc: musl
-            gcc_install: clang lld
-            gcc: clang
-            gxx: clang++
+          # - triple: "alpine-linux-musl"
+          #   platform: alpine
+          #   version: 3.16
+          #   libc: musl
+          #   gcc_install: clang lld
+          #   gcc: clang
+          #   gxx: clang++
           # libc is intentionally not set here, as prebuild-install requires libc to not be set for glibc builds
-          - triple: "linux-gnu"
-            platform: debian
-            version: bullseye
+          # - triple: "linux-gnu"
+          #   platform: debian
+          #   version: bullseye
           # Android/Termux configuration
           - triple: "linux-android"
             platform: android
             version: latest
             libc: bionic
           # Set baselines per architecture
-          - triple_arch: x86_64
-            node_arch: x64
-            arch: amd64
-          - triple_arch: armv7
-            node_arch: arm
-            triple_postfix: eabihf
-            arch: arm
-            flags: -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -fPIC
+          # - triple_arch: x86_64
+          #   node_arch: x64
+          #   arch: amd64
+          # - triple_arch: armv7
+          #   node_arch: arm
+          #   triple_postfix: eabihf
+          #   arch: arm
+          #   flags: -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -fPIC
           - triple_arch: aarch64
             node_arch: arm64
             arch: arm64
             flags: -march=armv8-a -fPIC
           # Set edge case overrides for specific platform + architecture
           # also define gcc commands for each architecture
-          - arch: amd64
-            platform: debian
-            gcc_install: gcc g++
-            gcc: gcc
-            gxx: g++
-          - arch: arm64
-            platform: debian
-            gcc_install: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-            gcc: aarch64-linux-gnu-gcc
-            gxx: aarch64-linux-gnu-g++
+          # - arch: amd64
+          #   platform: debian
+          #   gcc_install: gcc g++
+          #   gcc: gcc
+          #   gxx: g++
+          # - arch: arm64
+          #   platform: debian
+          #   gcc_install: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          #   gcc: aarch64-linux-gnu-gcc
+          #   gxx: aarch64-linux-gnu-g++
           # debian uses the triple `arm-linux-gnueabihf` instead of alpine's `armv7-alpine-linux-musleabihf`
           # because of this, we explicitly override triple_arch for debian arm
-          - triple_arch: arm
-            arch: arm
-            platform: debian
-            gcc_install: gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
-            gcc: arm-linux-gnueabihf-gcc
-            gxx: arm-linux-gnueabihf-g++
+          # - triple_arch: arm
+          #   arch: arm
+          #   platform: debian
+          #   gcc_install: gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          #   gcc: arm-linux-gnueabihf-gcc
+          #   gxx: arm-linux-gnueabihf-g++
           # Android Termux configuration for Octa-core Cortex-A78/A55
           - arch: arm64
             platform: android
@@ -77,12 +79,13 @@ jobs:
             gcc: gcc
             gxx: g++
             flags: -march=armv8.2-a -mcpu=cortex-a78 -mtune=cortex-a78 -fPIC
-        exclude:
-          # Exclude default android combinations except arm64
-          - arch: amd64
-            platform: android
-          - arch: arm
-            platform: android
+        # exclude section no longer needed since we're explicitly only including android arm64
+        # exclude:
+        #   # Exclude default android combinations except arm64
+        #   - arch: amd64
+        #     platform: android
+        #   - arch: arm
+        #     platform: android
 
     steps:
       - uses: actions/checkout@v4

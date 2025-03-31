@@ -1,0 +1,65 @@
+FROM debian:bullseye-slim
+
+ARG version=latest
+ARG node_version=18
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install basic build tools and dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    curl \
+    pkg-config \
+    wget \
+    unzip \
+    python3 \
+    clang \
+    llvm \
+    lld \
+    file &&
+    apt-get clean &&
+    rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_${node_version}.x | bash - &&
+    apt-get install -y nodejs &&
+    npm install -g npm@latest
+
+# Set up directories
+WORKDIR /tmp
+RUN mkdir -p /opt/android-ndk
+WORKDIR /opt/android-ndk
+
+# Install Android NDK
+RUN wget -q https://dl.google.com/android/repository/android-ndk-r23b-linux-x86_64.zip &&
+    unzip -q android-ndk-r23b-linux-x86_64.zip &&
+    rm android-ndk-r23b-linux-x86_64.zip &&
+    mv android-ndk-r23b/* . &&
+    rmdir android-ndk-r23b
+
+# Set up Termux-compatible environment variables
+ENV ANDROID_NDK_HOME=/opt/android-ndk
+ENV ANDROID_PLATFORM=android-24
+ENV TOOLCHAIN=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64
+ENV AR=$TOOLCHAIN/bin/llvm-ar
+ENV AS=$TOOLCHAIN/bin/llvm-as
+ENV CC=$TOOLCHAIN/bin/aarch64-linux-android24-clang
+ENV CXX=$TOOLCHAIN/bin/aarch64-linux-android24-clang++
+ENV LD=$TOOLCHAIN/bin/ld
+ENV RANLIB=$TOOLCHAIN/bin/llvm-ranlib
+ENV STRIP=$TOOLCHAIN/bin/llvm-strip
+ENV PATH=$TOOLCHAIN/bin:$PATH
+
+# Set up sysroot for cross-compilation
+ENV CROSS_SYSROOT=$TOOLCHAIN/sysroot
+ENV CFLAGS="-march=armv8.2-a -mcpu=cortex-a78 -mtune=cortex-a78 -fPIC"
+ENV CXXFLAGS="-march=armv8.2-a -mcpu=cortex-a78 -mtune=cortex-a78 -fPIC"
+ENV LDFLAGS="-march=armv8.2-a"
+
+# Set up working directory for node-datachannel
+WORKDIR /usr/app
+
+# Set the entry point (use the same as in other Dockerfiles)
+ENTRYPOINT ["bash", "-c"]
